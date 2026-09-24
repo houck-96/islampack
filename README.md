@@ -73,11 +73,14 @@ const results = db.quran.search("الرحمن");
 console.log(`تم العثور على ${results.length} آية.`);
 تشغيل الموقع والواجهة الرسومية المحلية
 يحتوي المستودع على واجهة مستخدم فاخرة ومستقلة (app.html) مع خادم محلي آمن غير متزامن (serve.js):
-code
-Bash
+
 # تشغيل الخادم وفتح الواجهة في المتصفح
 npm start
-ثم افتح: http://localhost:3000، واسحب أي ملف حزمة (.pack) لتصفح القرآن بالقراءات، وتذهيب علامات الوقف والسجدات، وتصفح الأحاديث والتفاسير ديناميكياً.
+
+ثم افتح: http://localhost:3000، واسحب أي ملف حزمة (.pack) لتصفح القرآن بالقراءات، وتذهيب علامات الوقف والسجدات، وتصفح الأحاديث وااسير ديناميكي
+
+
+
 🌐 English Documentation
 Overview
 IslamPack is an ultra-lightweight, zero-dependency engine engineered for offline embedding of the classical Islamic textual corpus into applications, mobile systems, local edge devices, and research environments.
@@ -92,19 +95,27 @@ All binary packs, API contracts, boundary bounds, and cryptographic hashes are a
 test/verify.js: Validates headers, SHA-256 hashes, and item counts (6,236 verses, 30,189 hadiths, 31,121 tafsirs).
 test/api.test.js: Validates runtime bounds, immutability, normalization, and error handling.
 benchmark.js: Reproducible live benchmarking measuring real memory heap and lookup latencies.
-code
+
+
 Bash
 # Run integrity & behavioral tests
 npm test
 
 # Run live hardware benchmark
 npm run benchmark
+
+
+
 📜 Sources, Provenance & Methodology
 Full documentation of datasets, canonical baseline sources, textual normalization methodology, and provenance records can be reviewed in SOURCES.md.
 ⚖️ License
 This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0).
 Free & Open: For students, researchers, educational, and non-profit personal projects.
 Commercial Use Prohibited: Any monetization, selling, commercial licensing, or proprietary closed-source redistribution is strictly forbidden.
+
+
+
+
 🤲 وقفٌ لله تعالى ودعاءٌ جامع (Dedication & Waqf)
 «اللَّهُمَّ إِنِّي أَبْرَأُ إِلَيْكَ مِنْ حَوْلِي وَقُوَّتِي إِلَى حَوْلِكَ وَقُوَّتِكَ، اللَّهُمَّ اجْعَلْ هَذَا العَمَلَ خَالِصاً لِوَجْهِكَ الكَرِيمِ، لَا رِيَاءَ فِيهِ وَلَا سُمْعَةَ.»
 نُهْدِي هَذَا الجُهْدَ وَأَجْرَهُ وَثَوَابَهُ الدَّائِمَ المُتَّصِلَ بِإِذْنِ اللهِ تَعَالَى:
