@@ -8,7 +8,7 @@
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-0_Native_Node.js-emerald.svg)]()
 [![Bundle Size](https://img.shields.io/badge/Full_Corpus-14.82_MB-blue.svg)]()
 [![Query Latency](https://img.shields.io/badge/Lookup_Time-3.4_μs-brightgreen.svg)]()
-
+[![IslamPack Quality & CI](https://github.com/houck-96/islampack/actions/workflows/ci.yml/badge.svg)](https://github.com/اسم_حسابك/islampack/actions/workflows/ci.yml)
 [العربية](#-باللغة-العربية) • [English](#-english-documentation) • [Benchmarks](BENCHMARKS.md) • [License](LICENSE.md)
 
 </div>
