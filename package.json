@@ -1,0 +1,26 @@
+{
+  "name": "islampack",
+  "version": "1.0.0",
+  "description": "High-Performance, Zero-Dependency Islamic Canonical Engine. Quran (5 Qira'at), 5 Hadith Books (30k+ Hadiths), 5 Tafsirs (31k+ Entries).",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node serve.js",
+    "test": "node test/verify.js",
+    "benchmark": "node benchmark.js",
+    "build": "node src/compiler.js",
+    "demo": "node demo.js"
+  },
+  "keywords": [
+    "quran",
+    "qiraat",
+    "hadith",
+    "tafsir",
+    "islamic-data",
+    "compression",
+    "brotli",
+    "zero-dependencies"
+  ],
+  "author": "IslamPack Contributors",
+  "license": "CC-BY-NC-4.0"
+}

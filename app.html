@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المكتبة الإسلامية الرقمية فائقة الخفة | IslamPack</title>
+  <style>
+    :root {
+      --bg: #090e0d;
+      --card-bg: #121918;
+      --card-border: #1b2624;
+      --gold: #d4af37;
+      --gold-light: #f5e7b2;
+      --gold-dark: #997300;
+      --text: #e6edea;
+      --text-muted: #8b9d98;
+      --accent: #172c28;
+      --font-quran: 'Amiri', 'Traditional Arabic', serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; line-height: 1.6; }
+
+    header {
+      text-align: center;
+      padding: 20px 0 25px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 25px;
+    }
+    header h1 { font-size: 2.2rem; color: var(--gold); margin-bottom: 8px; letter-spacing: 1px; }
+    header p { color: var(--text-muted); font-size: 1rem; }
+
+    .drop-zone {
+      background: var(--card-bg);
+      border: 2px dashed var(--gold-dark);
+      border-radius: 12px;
+      padding: 25px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      max-width: 800px;
+      margin: 0 auto 25px;
+    }
+    .drop-zone:hover, .drop-zone.dragover { border-color: var(--gold); background: var(--accent); }
+    .drop-zone p { color: var(--gold-light); font-size: 1.1rem; margin-bottom: 8px; font-weight: bold; }
+    .drop-zone span { font-size: 0.9rem; color: var(--text-muted); }
+    #fileInput { display: none; }
+
+    .pack-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #112824;
+      border: 1px solid var(--gold);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      color: var(--gold-light);
+      margin-top: 15px;
+    }
+
+    .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+    .tab-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover:not(:disabled) { border-color: var(--gold); color: var(--text); }
+    .tab-btn.active { background: var(--gold); color: #0b1110; border-color: var(--gold); }
+    .tab-btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: #222; }
+
+    .content-box {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .controls-bar {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+      align-items: center;
+      background: #0d1413;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+    select, input {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 1rem;
+      outline: none;
+    }
+    select:focus, input:focus { border-color: var(--gold); }
+
+    /* إطار ترويسة السورة المذهبة */
+    .surah-header-card {
+      text-align: center;
+      background: linear-gradient(180deg, #172422 0%, #0f1817 100%);
+      border: 2px solid var(--gold);
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.15);
+    }
+    .surah-title {
+      font-family: var(--font-quran);
+      font-size: 2.5rem;
+      color: var(--gold-light);
+      margin-bottom: 8px;
+    }
+    .surah-meta-badges {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 15px;
+      font-size: 0.95rem;
+    }
+    .surah-badge {
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid var(--gold-dark);
+      color: var(--gold);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+    .istiadha-text {
+      color: var(--text-muted);
+      font-size: 1.15rem;
+      font-family: var(--font-quran);
+      margin-bottom: 8px;
+    }
+    .basmalah-text {
+      font-family: var(--font-quran);
+      font-size: 2.1rem;
+      color: var(--gold);
+      margin-top: 5px;
+      letter-spacing: 1px;
+    }
+    .tawbah-notice {
+      color: #e67e22;
+      font-size: 1rem;
+      margin-top: 8px;
+      font-style: italic;
+      background: rgba(230, 126, 34, 0.1);
+      padding: 8px 15px;
+      border-radius: 8px;
+      display: inline-block;
+    }
+
+    /* نص الآيات والتجويد */
+    .quran-container {
+      font-family: var(--font-quran);
+      font-size: 1.8rem;
+      line-height: 2.35;
+      text-align: justify;
+      color: #f7fbf9;
+    }
+    .ayah-text { margin-bottom: 15px; }
+    .ayah-badge {
+      display: inline-block;
+      color: var(--gold);
+      font-size: 1.25rem;
+      margin: 0 6px;
+      user-select: none;
+    }
+    .variant-highlight {
+      color: #ffd700;
+      background: rgba(212, 175, 55, 0.18);
+      padding: 2px 8px;
+      border-radius: 4px;
+      border-bottom: 2px solid var(--gold);
+    }
+    .waqf-mark {
+      color: #ffd700 !important;
+      font-size: 1.35rem;
+      font-weight: bold;
+      margin: 0 3px;
+      display: inline-block;
+    }
+    .sajdah-pill {
+      background: rgba(212, 175, 55, 0.25);
+      color: #ffd700;
+      border: 1px solid #d4af37;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      vertical-align: middle;
+      margin: 0 4px;
+      display: inline-block;
+    }
+    .hizb-pill {
+      color: #d4af37;
+      font-size: 1.45rem;
+      margin: 0 5px;
+      vertical-align: middle;
+      display: inline-block;
+    }
+
+    /* كروت الحديث والتفسير */
+    .hadith-card {
+      background: #0f1817;
+      border-right: 4px solid var(--gold);
+      padding: 20px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    .hadith-num { color: var(--gold); font-weight: bold; margin-bottom: 8px; font-size: 1.1rem; }
+    .hadith-text { font-size: 1.25rem; line-height: 2; }
+
+    .tafsir-card {
+      background: #0f1817;
+      border: 1px solid var(--card-border);
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+    .tafsir-title { color: var(--gold); font-weight: bold; font-size: 1.15rem; margin-bottom: 10px; }
+    .tafsir-body { font-size: 1.2rem; line-height: 1.95; color: #d0deda; }
+
+    .search-input { width: 100%; font-size: 1.15rem; padding: 14px; margin-bottom: 20px; }
+    .search-res-item {
+      padding: 15px;
+      border-bottom: 1px solid var(--card-border);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .search-res-item:hover { background: #162422; }
+    .search-meta { font-size: 0.9rem; color: var(--gold); margin-bottom: 5px; }
+    .status-msg { padding: 15px; border-radius: 6px; margin: 10px 0; background: #162220; color: var(--text-muted); }
+    .error-msg { background: rgba(231, 76, 60, 0.15); color: #e74c3c; border-right: 4px solid #e74c3c; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>المكتبة الإسلامية الرقمية فائقة الخفة</h1>
+    <p>المصحف الشريف (5 قراءات) • أمهات كتب الحديث (5 مجاميع) • أمهات كتب التفسير (5 تفاسير)</p>
+  </header>
+
+  <div class="drop-zone" id="dropZone">
+    <p id="dropText">📁 اضغط هنا أو اسحب وأفلت أي ملف حزمة (.pack)</p>
+    <span>اختر (islam-full.pack أو islam-qh.pack أو islam-qt.pack) لاختبار المحتوى ديناميكياً</span>
+    <input type="file" id="fileInput" accept=".pack">
+    <div id="packDetails" style="display:none;" class="pack-badge"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="btnQuran">📖 المصحف الشريف والقراءات</button>
+    <button class="tab-btn" id="btnHadith">📜 مجاميع الحديث الخمسة</button>
+    <button class="tab-btn" id="btnTafsir">💡 أعظم كتب التفسير</button>
+    <button class="tab-btn" id="btnSearch">🔍 محرك البحث الفوري</button>
+  </div>
+
+  <div class="content-box">
+    
+    <!-- 1. القرآن -->
+    <div id="tabQuran" class="tab-content active">
+      <div class="controls-bar">
+        <label>السورة:</label>
+        <select id="surahSelect"></select>
+        
+        <label>القراءة / الرواية:</label>
+        <select id="riwayahSelect">
+          <option value="0">حفص عن عاصم (الأساس)</option>
+          <option value="1">ورش عن نافع</option>
+          <option value="2">قالون عن نافع</option>
+          <option value="3">الدوري عن أبي عمرو</option>
+          <option value="4">شعبة عن عاصم</option>
+        </select>
+      </div>
+
+      <!-- إطار ترويسة السورة الشاملة -->
+      <div id="surahHeaderArea" style="display:none;"></div>
+
+      <div id="quranView" class="quran-container">يرجى اختيار ملف الحزمة أعلاه لعرض السور بالتشكيل التام والقراءات...</div>
+    </div>
+
+    <!-- 2. الحديث -->
+    <div id="tabHadith" class="tab-content">
+      <div class="controls-bar">
+        <label>كتاب الحديث:</label>
+        <select id="hadithBookSelect">
+          <option value="0">صحيح البخاري</option>
+          <option value="1">صحيح مسلم</option>
+          <option value="2">سنن أبي داود</option>
+          <option value="3">جامع الترمذي</option>
+          <option value="4">سنن النسائي</option>
+        </select>
+        <label>رقم الحديث:</label>
+        <input type="number" id="hadithNumInput" value="1" min="1" style="width: 100px;">
+        <button class="tab-btn" id="btnPrevHadith" style="padding: 8px 16px;">السابق</button>
+        <button class="tab-btn" id="btnNextHadith" style="padding: 8px 16px;">التالي</button>
+      </div>
+      <div id="hadithView">اختر الحزمة لعرض الأحاديث...</div>
+    </div>
+
+    <!-- 3. التفسير -->
+    <div id="tabTafsir" class="tab-content">
+      <div class="controls-bar">
+        <label>السورة:</label>
+        <select id="tafsirSurahSelect"></select>
+        <label>الآية:</label>
+        <input type="number" id="tafsirAyahInput" value="1" min="1" max="286" style="width: 90px;">
+        <label>التفسير:</label>
+        <select id="tafsirBookSelect">
+          <option value="0">تفسير الجلالين</option>
+          <option value="1">تفسير السعدي</option>
+          <option value="2">تفسير ابن كثير</option>
+          <option value="3">تفسير البغوي</option>
+          <option value="4">تفسير القرطبي</option>
+        </select>
+      </div>
+      <div id="tafsirView">اختر الحزمة لعرض التفاسير...</div>
+    </div>
+
+    <!-- 4. البحث -->
+    <div id="tabSearch" class="tab-content">
+      <input type="text" id="searchInput" class="search-input" placeholder="اكتب كلمة للبحث الفوري في القرآن الكريم (مثال: الرحمن، الكوثر، الصابرين)...">
+      <div id="searchResults"></div>
+    </div>
+
+  </div>
+
+  <script>
+    // دالة تعقيم لمنع ثغرات XSS تماماً
+    function escapeHtml(str) {
+      if (typeof str !== 'string') return '';
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // جدول بيانات السور الـ 114 بالكامل
+    const SURAHS_META = [
+      { id: 1, name: "الفاتحة", type: "مكية", ayahs: 7, bismillah: false },
+      { id: 2, name: "البقرة", type: "مدنية", ayahs: 286, bismillah: true },
+      { id: 3, name: "آل عمران", type: "مدنية", ayahs: 200, bismillah: true },
+      { id: 4, name: "النساء", type: "مدنية", ayahs: 176, bismillah: true },
+      { id: 5, name: "المائدة", type: "مدنية", ayahs: 120, bismillah: true },
+      { id: 6, name: "الأنعام", type: "مكية", ayahs: 165, bismillah: true },
+      { id: 7, name: "الأعراف", type: "مكية", ayahs: 206, bismillah: true },
+      { id: 8, name: "الأنفال", type: "مدنية", ayahs: 75, bismillah: true },
+      { id: 9, name: "التوبة", type: "مدنية", ayahs: 129, bismillah: false },
+      { id: 10, name: "يونس", type: "مكية", ayahs: 109, bismillah: true },
+      { id: 11, name: "هود", type: "مكية", ayahs: 123, bismillah: true },
+      { id: 12, name: "يوسف", type: "مكية", ayahs: 111, bismillah: true },
+      { id: 13, name: "الرعد", type: "مدنية", ayahs: 43, bismillah: true },
+      { id: 14, name: "إبراهيم", type: "مكية", ayahs: 52, bismillah: true },
+      { id: 15, name: "الحجر", type: "مكية", ayahs: 99, bismillah: true },
+      { id: 16, name: "النحل", type: "مكية", ayahs: 128, bismillah: true },
+      { id: 17, name: "الإسراء", type: "مكية", ayahs: 111, bismillah: true },
+      { id: 18, name: "الكهف", type: "مكية", ayahs: 110, bismillah: true },
+      { id: 19, name: "مريم", type: "مكية", ayahs: 98, bismillah: true },
+      { id: 20, name: "طه", type: "مكية", ayahs: 135, bismillah: true },
+      { id: 21, name: "الأنبياء", type: "مكية", ayahs: 112, bismillah: true },
+      { id: 22, name: "الحج", type: "مدنية", ayahs: 78, bismillah: true },
+      { id: 23, name: "المؤمنون", type: "مكية", ayahs: 118, bismillah: true },
+      { id: 24, name: "النور", type: "مدنية", ayahs: 64, bismillah: true },
+      { id: 25, name: "الفرقان", type: "مكية", ayahs: 77, bismillah: true },
+      { id: 26, name: "الشعراء", type: "مكية", ayahs: 227, bismillah: true },
+      { id: 27, name: "النمل", type: "مكية", ayahs: 93, bismillah: true },
+      { id: 28, name: "القصص", type: "مكية", ayahs: 88, bismillah: true },
+      { id: 29, name: "العنكبوت", type: "مكية", ayahs: 69, bismillah: true },
+      { id: 30, name: "الروم", type: "مكية", ayahs: 60, bismillah: true },
+      { id: 31, name: "لقمان", type: "مكية", ayahs: 34, bismillah: true },
+      { id: 32, name: "السجدة", type: "مكية", ayahs: 30, bismillah: true },
+      { id: 33, name: "الأحزاب", type: "مدنية", ayahs: 73, bismillah: true },
+      { id: 34, name: "سبأ", type: "مكية", ayahs: 54, bismillah: true },
+      { id: 35, name: "فاطر", type: "مكية", ayahs: 45, bismillah: true },
+      { id: 36, name: "يس", type: "مكية", ayahs: 83, bismillah: true },
+      { id: 37, name: "الصافات", type: "مكية", ayahs: 182, bismillah: true },
+      { id: 38, name: "ص", type: "مكية", ayahs: 88, bismillah: true },
+      { id: 39, name: "الزمر", type: "مكية", ayahs: 75, bismillah: true },
+      { id: 40, name: "غافر", type: "مكية", ayahs: 85, bismillah: true },
+      { id: 41, name: "فصلت", type: "مكية", ayahs: 54, bismillah: true },
+      { id: 42, name: "الشورى", type: "مكية", ayahs: 53, bismillah: true },
+      { id: 43, name: "الزخرف", type: "مكية", ayahs: 89, bismillah: true },
+      { id: 44, name: "الدخان", type: "مكية", ayahs: 59, bismillah: true },
+      { id: 45, name: "الجاثية", type: "مكية", ayahs: 37, bismillah: true },
+      { id: 46, name: "الأحقاف", type: "مكية", ayahs: 35, bismillah: true },
+      { id: 47, name: "محمد", type: "مدنية", ayahs: 38, bismillah: true },
+      { id: 48, name: "الفتح", type: "مدنية", ayahs: 29, bismillah: true },
+      { id: 49, name: "الحجرات", type: "مدنية", ayahs: 18, bismillah: true },
+      { id: 50, name: "ق", type: "مكية", ayahs: 45, bismillah: true },
+      { id: 51, name: "الذاريات", type: "مكية", ayahs: 60, bismillah: true },
+      { id: 52, name: "الطور", type: "مكية", ayahs: 49, bismillah: true },
+      { id: 53, name: "النجم", type: "مكية", ayahs: 62, bismillah: true },
+      { id: 54, name: "القمر", type: "مكية", ayahs: 55, bismillah: true },
+      { id: 55, name: "الرحمن", type: "مدنية", ayahs: 78, bismillah: true },
+      { id: 56, name: "الواقعة", type: "مكية", ayahs: 96, bismillah: true },
+      { id: 57, name: "الحديد", type: "مدنية", ayahs: 29, bismillah: true },
+      { id: 58, name: "المجادلة", type: "مدنية", ayahs: 22, bismillah: true },
+      { id: 59, name: "الحشر", type: "مدنية", ayahs: 24, bismillah: true },
+      { id: 60, name: "الممتحنة", type: "مدنية", ayahs: 13, bismillah: true },
+      { id: 61, name: "الصف", type: "مدنية", ayahs: 14, bismillah: true },
+      { id: 62, name: "الجمعة", type: "مدنية", ayahs: 11, bismillah: true },
+      { id: 63, name: "المنافقون", type: "مدنية", ayahs: 11, bismillah: true },
+      { id: 64, name: "التغابن", type: "مدنية", ayahs: 18, bismillah: true },
+      { id: 65, name: "الطلاق", type: "مدنية", ayahs: 12, bismillah: true },
+      { id: 66, name: "التحريم", type: "مدنية", ayahs: 12, bismillah: true },
+      { id: 67, name: "الملك", type: "مكية", ayahs: 30, bismillah: true },
+      { id: 68, name: "القلم", type: "مكية", ayahs: 52, bismillah: true },
+      { id: 69, name: "الحاقة", type: "مكية", ayahs: 52, bismillah: true },
+      { id: 70, name: "المعارج", type: "مكية", ayahs: 44, bismillah: true },
+      { id: 71, name: "نوح", type: "مكية", ayahs: 28, bismillah: true },
+      { id: 72, name: "الجن", type: "مكية", ayahs: 28, bismillah: true },
+      { id: 73, name: "المزمل", type: "مكية", ayahs: 20, bismillah: true },
+      { id: 74, name: "المدثر", type: "مكية", ayahs: 56, bismillah: true },
+      { id: 75, name: "القيامة", type: "مكية", ayahs: 40, bismillah: true },
+      { id: 76, name: "الإنسان", type: "مدنية", ayahs: 31, bismillah: true },
+      { id: 77, name: "المرسلات", type: "مكية", ayahs: 50, bismillah: true },
+      { id: 78, name: "النبأ", type: "مكية", ayahs: 40, bismillah: true },
+      { id: 79, name: "النازعات", type: "مكية", ayahs: 46, bismillah: true },
+      { id: 80, name: "عبس", type: "مكية", ayahs: 42, bismillah: true },
+      { id: 81, name: "التكوير", type: "مكية", ayahs: 29, bismillah: true },
+      { id: 82, name: "الانفطار", type: "مكية", ayahs: 19, bismillah: true },
+      { id: 83, name: "المطففين", type: "مكية", ayahs: 36, bismillah: true },
+      { id: 84, name: "الانشقاق", type: "مكية", ayahs: 25, bismillah: true },
+      { id: 85, name: "البروج", type: "مكية", ayahs: 22, bismillah: true },
+      { id: 86, name: "الطارق", type: "مكية", ayahs: 17, bismillah: true },
+      { id: 87, name: "الأعلى", type: "مكية", ayahs: 19, bismillah: true },
+      { id: 88, name: "الغاشية", type: "مكية", ayahs: 26, bismillah: true },
+      { id: 89, name: "الفجر", type: "مكية", ayahs: 30, bismillah: true },
+      { id: 90, name: "البلد", type: "مكية", ayahs: 20, bismillah: true },
+      { id: 91, name: "الشمس", type: "مكية", ayahs: 15, bismillah: true },
+      { id: 92, name: "الليل", type: "مكية", ayahs: 21, bismillah: true },
+      { id: 93, name: "الضحى", type: "مكية", ayahs: 11, bismillah: true },
+      { id: 94, name: "الشرح", type: "مكية", ayahs: 8, bismillah: true },
+      { id: 95, name: "التين", type: "مكية", ayahs: 8, bismillah: true },
+      { id: 96, name: "العلق", type: "مكية", ayahs: 19, bismillah: true },
+      { id: 97, name: "القدر", type: "مكية", ayahs: 5, bismillah: true },
+      { id: 98, name: "البينة", type: "مدنية", ayahs: 8, bismillah: true },
+      { id: 99, name: "الزلزلة", type: "مدنية", ayahs: 8, bismillah: true },
+      { id: 100, name: "العاديات", type: "مكية", ayahs: 11, bismillah: true },
+      { id: 101, name: "القارعة", type: "مكية", ayahs: 11, bismillah: true },
+      { id: 102, name: "التكاثر", type: "مكية", ayahs: 8, bismillah: true },
+      { id: 103, name: "العصر", type: "مكية", ayahs: 3, bismillah: true },
+      { id: 104, name: "الهمزة", type: "مكية", ayahs: 9, bismillah: true },
+      { id: 105, name: "الفيل", type: "مكية", ayahs: 5, bismillah: true },
+      { id: 106, name: "قريش", type: "مكية", ayahs: 4, bismillah: true },
+      { id: 107, name: "الماعون", type: "مكية", ayahs: 7, bismillah: true },
+      { id: 108, name: "الكوثر", type: "مكية", ayahs: 3, bismillah: true },
+      { id: 109, name: "الكافرون", type: "مكية", ayahs: 6, bismillah: true },
+      { id: 110, name: "النصر", type: "مدنية", ayahs: 3, bismillah: true },
+      { id: 111, name: "المسد", type: "مكية", ayahs: 5, bismillah: true },
+      { id: 112, name: "الإخلاص", type: "مكية", ayahs: 4, bismillah: true },
+      { id: 113, name: "الفلق", type: "مكية", ayahs: 5, bismillah: true },
+      { id: 114, name: "الناس", type: "مكية", ayahs: 6, bismillah: true }
+    ];
+
+    const TAFSIR_NAMES = ["تفسير الجلالين", "تفسير السعدي", "تفسير ابن كثير", "تفسير البغوي", "تفسير القرطبي"];
+    let currentData = null;
+
+    function initSelectors() {
+      const sSelect = document.getElementById('surahSelect');
+      const tSelect = document.getElementById('tafsirSurahSelect');
+      SURAHS_META.forEach(s => {
+        sSelect.add(new Option(`${s.id}. سورة ${s.name} (${s.type})`, s.id));
+        tSelect.add(new Option(`${s.id}. سورة ${s.name}`, s.id));
+      });
+    }
+    initSelectors();
+
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      if (name === 'quran') { document.getElementById('btnQuran').classList.add('active'); document.getElementById('tabQuran').classList.add('active'); }
+      if (name === 'hadith') { document.getElementById('btnHadith').classList.add('active'); document.getElementById('tabHadith').classList.add('active'); }
+      if (name === 'tafsir') { document.getElementById('btnTafsir').classList.add('active'); document.getElementById('tabTafsir').classList.add('active'); }
+      if (name === 'search') { document.getElementById('btnSearch').classList.add('active'); document.getElementById('tabSearch').classList.add('active'); }
+    }
+
+    document.getElementById('btnQuran').addEventListener('click', () => switchTab('quran'));
+    document.getElementById('btnHadith').addEventListener('click', () => switchTab('hadith'));
+    document.getElementById('btnTafsir').addEventListener('click', () => switchTab('tafsir'));
+    document.getElementById('btnSearch').addEventListener('click', () => switchTab('search'));
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) loadPackFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) loadPackFile(e.target.files[0]);
+    });
+
+    async function loadPackFile(file) {
+      document.getElementById('dropText').innerText = `⏳ جاري فك ضغط وتحليل الحزمة: ${escapeHtml(file.name)}...`;
+
+      try {
+        const formData = new FormData();
+        formData.append('pack', file);
+
+        const res = await fetch('/api/load-pack', { method: 'POST', body: formData });
+        if (!res.ok) throw new Error("تعذر فك ضغط الحزمة من الخادم المحلي");
+
+        currentData = await res.json();
+        updateUiForEdition(file.name, file.size);
+      } catch (err) {
+        alert("فشل تحميل الحزمة: تأكد من تشغيل الخادم المحلي (node serve.js)");
+        document.getElementById('dropText').innerText = `📁 اضغط هنا أو اسحب وأفلت أي ملف حزمة (.pack)`;
+      }
+    }
+
+    function updateUiForEdition(filename, size) {
+      const mb = (size / (1024 * 1024)).toFixed(2);
+      const badge = document.getElementById('packDetails');
+      badge.style.display = 'inline-flex';
+      badge.innerHTML = `✓ الحزمة النشطة: <b>${escapeHtml(filename)}</b> (${escapeHtml(mb)} MB)`;
+
+      const hasQuran = Boolean(currentData && currentData.quran);
+      const hasHadith = Boolean(currentData && currentData.hadith);
+      const hasTafsir = Boolean(currentData && currentData.tafsir);
+
+      document.getElementById('btnQuran').disabled = !hasQuran;
+      document.getElementById('btnHadith').disabled = !hasHadith;
+      document.getElementById('btnTafsir').disabled = !hasTafsir;
+
+      document.getElementById('dropText').innerText = `✅ تم تفعيل [${escapeHtml(filename)}] بنجاح تام!`;
+
+      if (hasQuran) renderQuran();
+      if (hasHadith) renderHadith();
+      if (hasTafsir) renderTafsir();
+    }
+
+    // عرض السورة مع ترويسة المصحف وتذهيب علامات الوقف والسجدات
+    function renderQuran() {
+      if (!currentData || !currentData.quran) return;
+      const surahId = parseInt(document.getElementById('surahSelect').value);
+      const riwayah = parseInt(document.getElementById('riwayahSelect').value);
+      const meta = SURAHS_META.find(s => s.id === surahId) || { name: "", type: "", ayahs: 0, bismillah: true };
+
+      const headerArea = document.getElementById('surahHeaderArea');
+      headerArea.style.display = 'block';
+
+      let bismillahHtml = '';
+      if (surahId === 9) {
+        // سورة التوبة: إسقاط البسملة شرعاً مع إظهار علة الإسقاط
+        bismillahHtml = `<div class="tawbah-notice">﴿ سُورَةُ التَّوْبَةِ نَزَلَتْ بِرَفْعِ الأَمَانِ وَالسَّيْفِ، فَلَا بَسْمَلَةَ فِي صَدْرِهَا إِجْمَاعاً ﴾</div>`;
+      } else if (surahId !== 1) {
+        // سائر السور عدا الفاتحة (لأن الفاتحة تبدأ بآية البسملة مباشرة في حفص)
+        bismillahHtml = `<div class="basmalah-text">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>`;
+      }
+
+      headerArea.innerHTML = `
+        <div class="surah-header-card">
+          <div class="istiadha-text">أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَانِ ٱلرَّجِيمِ</div>
+          <div class="surah-title">﴿ سُورَةُ ${escapeHtml(meta.name)} ﴾</div>
+          <div class="surah-meta-badges">
+            <span class="surah-badge">${escapeHtml(meta.type)}</span>
+            <span class="surah-badge">${escapeHtml(String(meta.ayahs))} آيَاتٍ</span>
+            <span class="surah-badge">تَرْتِيبُهَا: ${escapeHtml(String(meta.id))}</span>
+          </div>
+          ${bismillahHtml}
+        </div>
+      `;
+
+      const verses = currentData.quran.base.filter(v => v.s === surahId);
+      const variants = currentData.quran.variants || [];
+
+      let html = '';
+      for (const v of verses) {
+        let text = v.t;
+        let isVariant = false;
+
+        if (riwayah > 0) {
+          const match = variants.find(varItem => varItem.s === v.s && varItem.a === v.a && varItem.r === riwayah);
+          if (match) {
+            text = match.t;
+            isVariant = true;
+          }
+        }
+
+        // فحص وجود سجدة تلاوة (۩)
+        const hasSajdah = text.includes('\u06E9');
+        const sajdahBadge = hasSajdah ? ` <span class="sajdah-pill">۩ سَجْدَةٌ</span>` : '';
+
+        // تلوين علامات الوقف بذهب مشع (صلى، قلى، ج، مـ، التعانق) وإبراز الربع والحزب
+        let formattedText = escapeHtml(text)
+          .replace(/([\u06D6-\u06DC\u06E2])/g, '<span class="waqf-mark">$1</span>')
+          .replace(/([\u06DE])/g, '<span class="hizb-pill">۞</span>')
+          .replace(/([\u06E9])/g, '<span class="waqf-mark">۩</span>');
+
+        html += `<span id="ayah_${v.s}_${v.a}" class="ayah-text ${isVariant ? 'variant-highlight' : ''}">${formattedText}${sajdahBadge} <span class="ayah-badge">﴿${escapeHtml(String(v.a))}﴾</span></span> `;
+      }
+
+      document.getElementById('quranView').innerHTML = html;
+    }
+
+    document.getElementById('surahSelect').addEventListener('change', renderQuran);
+    document.getElementById('riwayahSelect').addEventListener('change', renderQuran);
+
+    function renderHadith() {
+      if (!currentData || !currentData.hadith) return;
+      const bId = document.getElementById('hadithBookSelect').value;
+      const num = parseInt(document.getElementById('hadithNumInput').value);
+
+      const list = currentData.hadith[bId] || [];
+      const item = list.find(h => h.n == num);
+
+      if (item && item.t) {
+        document.getElementById('hadithView').innerHTML = `
+          <div class="hadith-card">
+            <div class="hadith-num">الحديث رقم: ${escapeHtml(String(item.n))} (من أصل ${list.length.toLocaleString()} حديثاً)</div>
+            <div class="hadith-text">${escapeHtml(item.t)}</div>
+          </div>
+        `;
+      } else {
+        document.getElementById('hadithView').innerHTML = `
+          <div class="status-msg error-msg">
+            ⚠️ الحديث رقم (${escapeHtml(String(num))}) غير متوفر في هذا الكتاب.
+          </div>
+        `;
+      }
+    }
+
+    document.getElementById('hadithBookSelect').addEventListener('change', renderHadith);
+    document.getElementById('hadithNumInput').addEventListener('change', renderHadith);
+    document.getElementById('btnPrevHadith').addEventListener('click', () => {
+      const input = document.getElementById('hadithNumInput');
+      input.value = Math.max(1, parseInt(input.value) - 1);
+      renderHadith();
+    });
+    document.getElementById('btnNextHadith').addEventListener('click', () => {
+      const input = document.getElementById('hadithNumInput');
+      input.value = parseInt(input.value) + 1;
+      renderHadith();
+    });
+
+    function renderTafsir() {
+      if (!currentData || !currentData.tafsir) return;
+      const surah = parseInt(document.getElementById('tafsirSurahSelect').value);
+      const ayah = parseInt(document.getElementById('tafsirAyahInput').value);
+      const bId = document.getElementById('tafsirBookSelect').value;
+      const meta = SURAHS_META.find(s => s.id === surah) || { name: "" };
+
+      const list = currentData.tafsir[bId] || [];
+      const match = list.find(t => t.s === surah && t.a === ayah);
+
+      if (match && match.t) {
+        document.getElementById('tafsirView').innerHTML = `
+          <div class="tafsir-card">
+            <div class="tafsir-title">${escapeHtml(TAFSIR_NAMES[bId])} - [سورة ${escapeHtml(meta.name)}، الآية ${ayah}]:</div>
+            <div class="tafsir-body">${escapeHtml(match.t)}</div>
+          </div>
+        `;
+      } else {
+        document.getElementById('tafsirView').innerHTML = `
+          <div class="status-msg error-msg">
+            ⚠️ لا يوجد تفسير منفرد للآية رقم (${ayah}) في هذا الكتاب.
+          </div>
+        `;
+      }
+    }
+
+    document.getElementById('tafsirSurahSelect').addEventListener('change', renderTafsir);
+    document.getElementById('tafsirAyahInput').addEventListener('change', renderTafsir);
+    document.getElementById('tafsirBookSelect').addEventListener('change', renderTafsir);
+
+    function executeSearch() {
+      if (!currentData || !currentData.quran) return;
+      const q = document.getElementById('searchInput').value.trim();
+      const resDiv = document.getElementById('searchResults');
+      if (q.length < 2) { resDiv.innerHTML = ''; return; }
+
+      // تطبيع البحث ليتطابق مع الرسم العثماني
+      const cleanQ = q.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '')
+                      .replace(/[إأآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').trim();
+      const results = [];
+
+      for (const v of currentData.quran.base) {
+        const cleanT = v.t.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '')
+                          .replace(/[إأآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').trim();
+        if (cleanT.includes(cleanQ)) {
+          results.push(v);
+          if (results.length >= 40) break;
+        }
+      }
+
+      let html = '';
+      for (const r of results) {
+        const meta = SURAHS_META.find(s => s.id === r.s) || { name: "" };
+        html += `
+          <div class="search-res-item" onclick="jumpToVerse(${r.s}, ${r.a})">
+            <div class="search-meta">سورة ${escapeHtml(meta.name)} - الآية ${r.a}</div>
+            <div>${escapeHtml(r.t)}</div>
+          </div>
+        `;
+      }
+      resDiv.innerHTML = html || '<p style="padding:15px; color:#8b9d98;">لا توجد نتائج مطابقة.</p>';
+    }
+
+    document.getElementById('searchInput').addEventListener('input', executeSearch);
+
+    window.jumpToVerse = function(s, a) {
+      document.getElementById('surahSelect').value = s;
+      switchTab('quran');
+      renderQuran();
+      setTimeout(() => {
+        const el = document.getElementById(`ayah_${s}_${a}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    };
+  </script>
+</body>
+</html>
