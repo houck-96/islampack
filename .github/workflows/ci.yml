@@ -1,0 +1,33 @@
+name: IslamPack Quality & CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  verify-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: setup/node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Run Cryptographic & Integrity Tests
+        run: node test/verify.js
+
+      - name: Run API Behavioral Tests
+        run: node test/api.test.js
+
+      - name: Run Live Benchmark
+        run: node benchmark.js
