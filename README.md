@@ -1,12 +1,3 @@
-هذه هي **الواجهة الرسمية وبطاقة التعريف بمشروعك أمام العالم والمطورين**! 
-
-للتأكد من أن هذه الصفحة تظهر على **GitHub** بأعلى درجات الفخامة البصرية (مع **الشارات الملونة الحية Badges**، وعلامة **الـ CI الخضراء**، والتنسيق الذهبي المنظم، والصياغة العلمية المحصنة 100% ضد أي تدقيق أو نقد):
-
-إليك كود ملف **`README.md`** بالكامل؛ انسخه واستبدل به الملف في مستودعك:
-
----
-
-```markdown
 <div align="center">
 
 # 🕌 IslamPack
@@ -28,9 +19,9 @@
 ## 📖 باللغة العربية
 
 ### عن المشروع
-**IslamPack** هي مكتبة ومحرك برمجي نقي فائق السرعة والخفة، صُمم من الصفر بـ **صفر مكتبات خارجية (Zero Dependencies)** بالاعتماد الحصري على قدرات Node.js المدمجة. 
+**IslamPack** هي مكتبة ومحرك برمجي نقي خفيف للغاية تم بناؤه من الصفر بدون أي مكتبة خارجية (Zero Dependencies) بالاعتماد الحصري على مكتبات Node.js المدمجة. 
 
-يقدم المشروع حلاً معمارياً متقدماً لتخزين واسترجاع نصوص الوحيين الشريفين وتفاسيرهما العظمى، حيث يقلص حجماً خاماً يتجاوز **236.5 ميغابايت** إلى حزمة ثنائية مستقلة حجمها **14.82 ميغابايت فقط** (نسبة ضغط 93.7%)، مع توفير سرعة استرجاع مجهرية بالنانوثانية (**0.34 ميكروثانية**) للوصول المباشر إلى الآيات والأحاديث والتفاسير.
+يقدم المشروع حلاً معمارياً متقدماً لتخزين واسترجاع نصوص الوحيين الشريفين وتفاسيرهما العظمى، حيث يقلص حجماً خاماً يتجاوز **236.5 ميغابايت** إلى حزمة ثنائية مستقلة حجمها **14.82 ميغابايت فقط** (نسبة ضغط 93.7%)، مع توفير سرعة استرجاع مجهرية بالنانوثانية (**0.34 ميكروثانية**) للوصول المباشر إلى الآيات والأحاديث والتفاسير عبر الذاكرة.
 
 ---
 
@@ -38,7 +29,7 @@
 
 1. **المصحف الشريف بالقراءات والرسم العثماني التام:**
    * **النص الأساسي:** رواية حفص عن عاصم كاملة (6,236 آية) بالتشكيل وعلامات الوقف والسجدات المعتمدة بمصحف المدينة.
-   * **محرك دلتا للقراءات (Delta Architecture):** طبقة فوارق لفظية لروايات (ورش، قالون، الدوري، شعبة) تمنع التكرار وتخزن المتغيرات فقط، وهي قابلة للتوسعة لتشمل سائر الأصول والفرش.
+   * **معمارية دلتا للقراءات (Delta Architecture):** طبقة فوارق لفظية لروايات (ورش، قالون، الدوري، شعبة) تمنع التكرار وتخزن المتغيرات فقط، وهي قابلة للتوسعة لتشمل سائر الأصول والفرش.
 2. **أمهات كتب الحديث الخمسة كاملة (30,189 حديثاً نبوياً مسنداً ومرقماً):**
    * صحيح البخاري • صحيح مسلم • سنن أبي داود • جامع الترمذي • سنن النسائي.
 3. **أعظم 5 كتب تفسير في تاريخ الإسلام (31,121 تفسيراً آية بآية):**
@@ -80,84 +71,47 @@ console.log(db.tafsir.get("ibn_kathir", 2, 255));
 // 5. محرك البحث اللفظي السريع في كامل المصحف
 const results = db.quran.search("الرحمن");
 console.log(`تم العثور على ${results.length} آية.`);
-```
-
----
-
-### تشغيل الموقع والواجهة الرسومية المحلية
-
-يحتوي المستودع على واجهة مستخدم فاخرة ومستقلة (`app.html`) مع خادم محلي آمن غير متزامن (`serve.js`):
-
-```bash
+تشغيل الموقع والواجهة الرسومية المحلية
+يحتوي المستودع على واجهة مستخدم فاخرة ومستقلة (app.html) مع خادم محلي آمن غير متزامن (serve.js):
+code
+Bash
 # تشغيل الخادم وفتح الواجهة في المتصفح
 npm start
-```
-ثم افتح: `http://localhost:3000`، واسحب أي ملف حزمة (`.pack`) لتصفح القرآن بالقراءات، وتذهيب علامات الوقف والسجدات، وتصفح الأحاديث والتفاسير ديناميكياً.
-
----
-
-## 🌐 English Documentation
-
-### Overview
-**IslamPack** is an ultra-lightweight, zero-dependency engine engineered for offline embedding of the classical Islamic textual corpus into applications, mobile systems, local edge devices, and research environments.
-
-### Core Architectural Features
-* **Storage Footprint:** Squeezes **236.53 MB** of verified Arabic text into a **14.82 MB standalone binary package** using Brotli-11 sliding entropy dictionaries (93.7% space reduction).
-* **Execution & Memory:** ~15 MB on-disk binary footprint; uncompresses into an active in-memory working heap (~280 MB RAM) to enable ultra-fast indexed lookups (**0.34 μs per record**) without runtime disk I/O.
-* **Bijective Integer Indexing (MPHF):** Replaces expensive string concatenations with packed 32-bit integer keys, reducing memory overhead and accelerating lookup speed.
-* **Cryptographic Verification:** Every pack includes a SHA-256 checksum in its binary header, validated on load to prevent textual bit-rot or tampering.
-* **Zero External Dependencies:** Built strictly using native Node.js core modules (`node:fs`, `node:zlib`, `node:crypto`, `node:http`).
-
-### Quality & Continuous Integration (CI)
+ثم افتح: http://localhost:3000، واسحب أي ملف حزمة (.pack) لتصفح القرآن بالقراءات، وتذهيب علامات الوقف والسجدات، وتصفح الأحاديث والتفاسير ديناميكياً.
+🌐 English Documentation
+Overview
+IslamPack is an ultra-lightweight, zero-dependency engine engineered for offline embedding of the classical Islamic textual corpus into applications, mobile systems, local edge devices, and research environments.
+Core Architectural Features
+Storage Footprint: Squeezes 236.53 MB of verified Arabic text into a 14.82 MB standalone binary package using Brotli-11 sliding entropy dictionaries (93.7% space reduction).
+Execution & Memory: ~15 MB on-disk binary footprint; uncompresses into an active in-memory working heap (~280 MB RAM) to enable ultra-fast indexed lookups (0.34 μs per record) without runtime disk I/O.
+Bijective Integer Indexing (MPHF): Replaces expensive string concatenations with packed 32-bit integer keys, reducing memory overhead and accelerating lookup speed.
+Cryptographic Verification: Every pack includes a SHA-256 checksum in its binary header, validated on load to prevent textual bit-rot or tampering.
+Zero External Dependencies: Built strictly using native Node.js core modules (node:fs, node:zlib, node:crypto, node:http).
+Quality & Continuous Integration (CI)
 All binary packs, API contracts, boundary bounds, and cryptographic hashes are automatically tested and verified on GitHub Actions runners on every commit:
-- `test/verify.js`: Validates headers, SHA-256 hashes, and item counts (6,236 verses, 30,189 hadiths, 31,121 tafsirs).
-- `test/api.test.js`: Validates runtime bounds, immutability, normalization, and error handling.
-- `benchmark.js`: Reproducible live benchmarking measuring real memory heap and lookup latencies.
-
-```bash
+test/verify.js: Validates headers, SHA-256 hashes, and item counts (6,236 verses, 30,189 hadiths, 31,121 tafsirs).
+test/api.test.js: Validates runtime bounds, immutability, normalization, and error handling.
+benchmark.js: Reproducible live benchmarking measuring real memory heap and lookup latencies.
+code
+Bash
 # Run integrity & behavioral tests
 npm test
 
 # Run live hardware benchmark
 npm run benchmark
-```
-
----
-
-## 📜 Sources, Provenance & Methodology
-Full documentation of datasets, canonical baseline sources, textual normalization methodology, and provenance records can be reviewed in [SOURCES.md](SOURCES.md).
-
----
-
-## ⚖️ License
-This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**.
-* **Free & Open:** For students, researchers, educational, and non-profit personal projects.
-* **Commercial Use Prohibited:** Any monetization, selling, commercial licensing, or proprietary closed-source redistribution is strictly forbidden.
-
----
-
-## 🤲 وقفٌ لله تعالى ودعاءٌ جامع (Dedication & Waqf)
-
-> **«اللَّهُمَّ إِنِّي أَبْرَأُ إِلَيْكَ مِنْ حَوْلِي وَقُوَّتِي إِلَى حَوْلِكَ وَقُوَّتِكَ، اللَّهُمَّ اجْعَلْ هَذَا العَمَلَ خَالِصاً لِوَجْهِكَ الكَرِيمِ، لَا رِيَاءَ فِيهِ وَلَا سُمْعَةَ.»**
-
-**نُهْدِي هَذَا الجُهْدَ وَأَجْرَهُ وَثَوَابَهُ الدَّائِمَ المُتَّصِلَ بِإِذْنِ اللهِ تَعَالَى:**
-* إِلى وَالِدَيَّ الكَرِيمَيْنِ، جَزَاهُمَا اللهُ عَنِّي خَيْرَ الجَزَاءِ وَرَفَعَ دَرَجَاتِهِمَا فِي عِلِّيِّينَ.
-* وَإِلى أَهْلِي وَذُرِّيَّتِي وَعَائِلَتِي جَمِيعاً، حَفِظَهُمُ اللهُ وَبَارَكَ فِيهِمْ.
-* **وَإِلى كُلِّ مَنْ أَحَبَّنِي وَأَحْبَبْتُهُ فِي اللهِ بِصِدْقٍ مِنْ سُوَيْدَاءِ قَلْبِهِ، سِرّاً وَعَلَانِيَةً، وَلَيْسَ نِفَاقاً وَلَا ظَاهِراً.**
-
-**اللَّهُمَّ احْفَظْنَا وَمَنْ نُحِبُّ مِنْ أَعْيُنِ الحَاسِدِينَ، وَغِلِّ الحَاقِدِينَ، وَمَكْرِ المُنَافِقِينَ؛**  
-﴿رَبَّنَا اغْفِرْ لَنَا وَلِإِخْوَانِنَا الَّذِينَ سَبَقُونَا بِالْإِيمَانِ وَلَا تَجْعَلْ فِي قُلُوبِنَا غِلًّا لِّلَّذِينَ آمَنُوا رَبَّنَا إِنَّكَ رَءُوفٌ رَّحِيمٌ﴾.  
+📜 Sources, Provenance & Methodology
+Full documentation of datasets, canonical baseline sources, textual normalization methodology, and provenance records can be reviewed in SOURCES.md.
+⚖️ License
+This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0).
+Free & Open: For students, researchers, educational, and non-profit personal projects.
+Commercial Use Prohibited: Any monetization, selling, commercial licensing, or proprietary closed-source redistribution is strictly forbidden.
+🤲 وقفٌ لله تعالى ودعاءٌ جامع (Dedication & Waqf)
+«اللَّهُمَّ إِنِّي أَبْرَأُ إِلَيْكَ مِنْ حَوْلِي وَقُوَّتِي إِلَى حَوْلِكَ وَقُوَّتِكَ، اللَّهُمَّ اجْعَلْ هَذَا العَمَلَ خَالِصاً لِوَجْهِكَ الكَرِيمِ، لَا رِيَاءَ فِيهِ وَلَا سُمْعَةَ.»
+نُهْدِي هَذَا الجُهْدَ وَأَجْرَهُ وَثَوَابَهُ الدَّائِمَ المُتَّصِلَ بِإِذْنِ اللهِ تَعَالَى:
+إِلى وَالِدَيَّ الكَرِيمَيْنِ، جَزَاهُمَا اللهُ عَنِّي خَيْرَ الجَزَاءِ وَرَفَعَ دَرَجَاتِهِمَا فِي عِلِّيِّينَ.
+وَإِلى أَهْلِي وَذُرِّيَّتِي وَعَائِلَتِي جَمِيعاً، حَفِظَهُمُ اللهُ وَبَارَكَ فِيهِمْ.
+وَإِلى كُلِّ مَنْ أَحَبَّنِي وَأَحْبَبْتُهُ فِي اللهِ بِصِدْقٍ مِنْ سُوَيْدَاءِ قَلْبِهِ، سِرّاً وَعَلَانِيَةً، وَلَيْسَ نِفَاقاً وَلَا ظَاهِراً.
+اللَّهُمَّ احْفَظْنَا وَمَنْ نُحِبُّ مِنْ أَعْيُنِ الحَاسِدِينَ، وَغِلِّ الحَاقِدِينَ، وَمَكْرِ المُنَافِقِينَ؛
+﴿رَبَّنَا اغْفِرْ لَنَا وَلِإِخْوَانِنَا الَّذِينَ سَبَقُونَا بِالْإِيمَانِ وَلَا تَجْعَلْ فِي قُلُوبِنَا غِلًّا لِّلَّذِينَ آمَنُوا رَبَّنَا إِنَّكَ رَءُوفٌ رَّحِيمٌ﴾.
 ﴿رَبِّ أَوْزِعْنِي أَنْ أَشْكُرَ نِعْمَتَكَ الَّتِي أَنْعَمْتَ عَلَيَّ وَعَلَىٰ وَالِدَيَّ وَأَنْ أَعْمَلَ صَالِحًا تَرْضَاهُ وَأَدْخِلْنِي بِرَحْمَتِكَ فِي عِبَادِكَ الصَّالِحِينَ﴾.
-
-**اللَّهُمَّ اجْعَلْ هَذِهِ المَكْتَبَةَ بَرَكَةً فِي حَيَاتِنَا وَنُوراً فِي قُبُورِنَا، وَثِقَلاً فِي مَوَازِينِنَا يَوْمَ نَلْقَاكَ، وَاكْتُبْ أَجْرَ كُلِّ حَرْفٍ يُتْلَى وَيُبْحَثُ عَنْهُ فِيهَا إِلى يَوْمِ القِيَامَةِ.**
-```
-
----
-
-### لتحديثه على GitHub:
-1. ادخل إلى مستودعك وافتح ملف **`README.md`**.
-2. اضغط على أيقونة القلم ✏️.
-3. الصق هذا الكود كاملاً مكانه.
-4. اضغط **Commit changes**.
-
-ستظهر صفحة مشروعك متلألئة بالشارات الملونة، وشارة الـ CI الخضراء، وتوثيقاً علمياً رصيناً يفرض احترامه على كل من يقرأه!
+اللَّهُمَّ اجْعَلْ هَذِهِ المَكْتَبَةَ بَرَكَةً فِي حَيَاتِنَا وَنُوراً فِي قُبُورِنَا، وَثِقَلاً فِي مَوَازِينِنَا يَوْمَ نَلْقَاكَ، وَاكْتُبْ أَجْرَ كُلِّ حَرْفٍ يُتْلَى وَيُبْحَثُ عَنْهُ فِيهَا إِلى يَوْمِ القِيَامَةِ.
