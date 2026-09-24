@@ -4,91 +4,106 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { exec } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || 3000;
-const MAX_PAYLOAD_SIZE = 30 * 1024 * 1024; // حد أقصى 30 ميغابايت للحماية
 
-function openBrowser(url) {
-  const startCmd = process.platform === 'win32' ? 'start' :
-                   process.platform === 'darwin' ? 'open' : 'xdg-open';
-  exec(`${startCmd} ${url}`, () => {});
+// حدود الأمان الصارمة
+const MAX_UPLOAD_BYTES = 30 * 1024 * 1024;    // 30MB كحد أقصى للحجم المضغوط
+const MAX_DECOMPRESSED_BYTES = 180 * 1024 * 1024; // حماية ضد Decompression Bomb
+
+function setSecurityHeaders(res) {
+  res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' data:;");
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
 }
 
 const server = http.createServer((req, res) => {
-  const sanitizedUrl = new URL(req.url, `http://${req.headers.host}`).pathname;
+  setSecurityHeaders(res);
+  const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
+  const pathname = parsedUrl.pathname;
 
-  // 1. تقديم الواجهة app.html
-  if (sanitizedUrl === '/' || sanitizedUrl === '/index.html' || sanitizedUrl === '/app.html') {
+  // 1. تقديم صفحة الواجهة
+  if (pathname === '/' || pathname === '/index.html' || pathname === '/app.html') {
     const htmlPath = path.join(__dirname, 'app.html');
     if (!fs.existsSync(htmlPath)) {
-      res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
-      return res.end("خطأ: لم يتم العثور على ملف app.html في مسار الخادم.");
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      return res.end("ملف app.html غير موجود.");
     }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     return fs.createReadStream(htmlPath).pipe(res);
   }
 
-  // 2. معالجة وفك ضغط الحزمة مع التحقق الأمني التام
-  if (sanitizedUrl === '/api/load-pack' && req.method === 'POST') {
+  // 2. استقبال الملف الثنائي الخام (Octet-Stream) ومعالجته بشكل غير متزامن
+  if (pathname === '/api/load-pack' && req.method === 'POST') {
     let receivedBytes = 0;
     const chunks = [];
 
     req.on('data', (chunk) => {
       receivedBytes += chunk.length;
-      if (receivedBytes > MAX_PAYLOAD_SIZE) {
-        res.writeHead(413, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: "تم رفض الملف: الحجم يتجاوز الحد الأقصى المسموح (30MB)." }));
+      if (receivedBytes > MAX_UPLOAD_BYTES) {
+        res.writeHead(413, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: "تم رفض الطلب: الحجم يتجاوز 30MB." }));
         req.destroy();
       }
       chunks.push(chunk);
     });
 
     req.on('end', () => {
-      if (receivedBytes > MAX_PAYLOAD_SIZE) return;
+      if (receivedBytes > MAX_UPLOAD_BYTES) return;
 
-      try {
-        const fullBuffer = Buffer.concat(chunks);
-        const magicIndex = fullBuffer.indexOf(Buffer.from("ISLAM"));
+      const fullBuffer = Buffer.concat(chunks);
+      if (fullBuffer.length < 40) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ error: "حجم الملف غير صالح." }));
+      }
 
-        if (magicIndex === -1 || fullBuffer.length < magicIndex + 40) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ error: "صيغة الحزمة غير صالحة: الترويسة السحرية مفقودة." }));
+      const magic = fullBuffer.subarray(0, 8).toString('utf-8');
+      if (!magic.startsWith("ISLAM")) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ error: "ترويسة الملف غير صالحة." }));
+      }
+
+      const expectedHash = fullBuffer.subarray(8, 40);
+      const compressedBody = fullBuffer.subarray(40);
+
+      // فك ضغط غير متزامن تماماً لعدم حجب مسار Node.js Event Loop
+      zlib.brotliDecompress(compressedBody, {
+        params: {
+          [zlib.constants.BROTLI_DECODER_PARAM_LARGE_WINDOW]: 1
+        }
+      }, (err, decompressed) => {
+        if (err) {
+          res.writeHead(422, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ error: "فشل فك ضغط الحزمة: الملف تالف." }));
         }
 
-        const rawPack = fullBuffer.subarray(magicIndex);
-        const expectedHash = rawPack.subarray(8, 40);
-        const compressedBody = rawPack.subarray(40);
+        // الحماية من قنبلة فك الضغط (Zip/Brotli Bomb)
+        if (decompressed.length > MAX_DECOMPRESSED_BYTES) {
+          res.writeHead(413, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ error: "الحجم بعد فك الضغط يتجاوز الحد المسموح." }));
+        }
 
-        // فك الضغط
-        const decompressed = zlib.brotliDecompressSync(compressedBody);
-
-        // التحقق من البصمة التشفيرية
+        // التحقق من SHA-256
         const actualHash = crypto.createHash('sha256').update(decompressed).digest();
         if (!expectedHash.equals(actualHash)) {
-          res.writeHead(422, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ error: "فشل التحقق التشفيري: بصمة SHA-256 لا تتطابق!" }));
+          res.writeHead(422, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ error: "فشل مطابقة البصمة التشفيرية SHA-256." }));
         }
 
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(decompressed);
-      } catch (err) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: "فشل فك ضغط الحزمة: تأكد من سلامة الملف." }));
-      }
+      });
     });
     return;
   }
 
   res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-  res.end("الصفحة غير موجودة 404");
+  res.end("404 Not Found");
 });
 
 server.listen(PORT, () => {
   console.log(`🌐 خادم IslamPack يعمل الآن على: http://localhost:${PORT}`);
-  if (process.env.NODE_ENV !== 'production' && !process.env.CI) {
-    openBrowser(`http://localhost:${PORT}`);
-  }
 });

@@ -2,14 +2,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import crypto from 'node:crypto';
+import { IslamicMPHF } from './mphf.js';
 
-export const RIWAYAT = ["hafs", "warsh", "qalun", "duri", "shubah"];
-export const HADITH_BOOKS = ["bukhari", "muslim", "abudawud", "tirmidhi", "nasai"];
-export const TAFSIR_BOOKS = ["jalalayn", "saadi", "ibn_kathir", "baghawi", "qurtubi"];
+export const RIWAYAT = Object.freeze(["hafs", "warsh", "qalun", "duri", "shubah"]);
+export const HADITH_BOOKS = Object.freeze(["bukhari", "muslim", "abudawud", "tirmidhi", "nasai"]);
+export const TAFSIR_BOOKS = Object.freeze(["jalalayn", "saadi", "ibn_kathir", "baghawi", "qurtubi"]);
 
-// الفهرس الوصفي المعتمد للسور الـ 114 كاملاً (Metadata)
-export const SURAHS_META = [
-  { id: 1, name: "الفاتحة", type: "مكية", ayahs: 7, bismillah: false }, // البسملة آية 1 بحفص
+// الفهرس الوصفي الشامل للـ 114 سورة بالتجميد العميق (Deep Freeze) لمنع أي تعديل خارجي
+export const SURAHS_META = Object.freeze([
+  { id: 1, name: "الفاتحة", type: "مكية", ayahs: 7, bismillah: false },
   { id: 2, name: "البقرة", type: "مدنية", ayahs: 286, bismillah: true },
   { id: 3, name: "آل عمران", type: "مدنية", ayahs: 200, bismillah: true },
   { id: 4, name: "النساء", type: "مدنية", ayahs: 176, bismillah: true },
@@ -17,7 +18,7 @@ export const SURAHS_META = [
   { id: 6, name: "الأنعام", type: "مكية", ayahs: 165, bismillah: true },
   { id: 7, name: "الأعراف", type: "مكية", ayahs: 206, bismillah: true },
   { id: 8, name: "الأنفال", type: "مدنية", ayahs: 75, bismillah: true },
-  { id: 9, name: "التوبة", type: "مدنية", ayahs: 129, bismillah: false }, // لا بسملة في التوبة إجماعاً
+  { id: 9, name: "التوبة", type: "مدنية", ayahs: 129, bismillah: false },
   { id: 10, name: "يونس", type: "مكية", ayahs: 109, bismillah: true },
   { id: 11, name: "هود", type: "مكية", ayahs: 123, bismillah: true },
   { id: 12, name: "يوسف", type: "مكية", ayahs: 111, bismillah: true },
@@ -123,10 +124,10 @@ export const SURAHS_META = [
   { id: 112, name: "الإخلاص", type: "مكية", ayahs: 4, bismillah: true },
   { id: 113, name: "الفلق", type: "مكية", ayahs: 5, bismillah: true },
   { id: 114, name: "الناس", type: "مكية", ayahs: 6, bismillah: true }
-];
+].map(s => Object.freeze(s)));
 
 export function normalizeArabic(text) {
-  if (!text) return '';
+  if (typeof text !== 'string') return '';
   return text
     .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '')
     .replace(/[إأآٱ]/g, 'ا')
@@ -139,23 +140,23 @@ export class IslamEngine {
   constructor(packPath) {
     this.packPath = packPath;
     this.data = null;
-    this.quranIndex = new Map();
-    this.quranVariants = new Map();
-    this.hadithIndex = new Map();
-    this.tafsirIndex = new Map();
+    this.quranIndex = new Map();     // Key: uint32 packed coordinate via IslamicMPHF
+    this.quranVariants = new Map();  // Key: uint32 packed coordinate
+    this.hadithIndex = new Map();    // Key: uint32 packed coordinate
+    this.tafsirIndex = new Map();    // Key: uint32 packed coordinate
+    this.normalizedQuranCache = [];  // فهرس البحث المسبق لتسريع البحث
   }
 
   static resolvePackPath(filename) {
-    const rootPath = path.resolve(filename);
-    if (fs.existsSync(rootPath)) return rootPath;
-
-    const distPath = path.resolve('./dist', filename);
-    if (fs.existsSync(distPath)) return distPath;
-
-    const baseName = path.basename(filename);
-    if (fs.existsSync(path.resolve(baseName))) return path.resolve(baseName);
-    if (fs.existsSync(path.resolve('./dist', baseName))) return path.resolve('./dist', baseName);
-
+    const candidates = [
+      path.resolve(filename),
+      path.resolve('./dist', filename),
+      path.resolve(path.basename(filename)),
+      path.resolve('./dist', path.basename(filename))
+    ];
+    for (const p of candidates) {
+      if (fs.existsSync(p)) return p;
+    }
     throw new Error(`تعذر العثور على الحزمة: ${filename}`);
   }
 
@@ -164,11 +165,11 @@ export class IslamEngine {
     const engine = new IslamEngine(resolved);
     const buf = fs.readFileSync(resolved);
 
-    if (buf.length < 40) throw new Error("ملف الحزمة تالف.");
+    if (buf.length < 40) throw new Error("الملف تالف: الحجم أقل من الترويسة القياسية.");
 
     const magic = buf.subarray(0, 8).toString('utf-8');
     if (!magic.startsWith("ISLAM")) {
-      throw new Error("ترويسة الملف غير صالحة.");
+      throw new Error(`ترويسة الحزمة غير صالحة: ${magic}`);
     }
 
     const expectedHash = buf.subarray(8, 40);
@@ -177,7 +178,7 @@ export class IslamEngine {
     const actualHash = crypto.createHash('sha256').update(decompressed).digest();
 
     if (!expectedHash.equals(actualHash)) {
-      throw new Error("فشل التحقق التشفيري (SHA-256)!");
+      throw new Error("فشل التحقق التشفيري الصارم (SHA-256): البيانات غير موثوقة أو مبتورة!");
     }
 
     engine.data = JSON.parse(decompressed.toString('utf-8'));
@@ -186,32 +187,46 @@ export class IslamEngine {
   }
 
   _buildIndexes() {
-    if (this.data.quran) {
+    // 1. فهرسة القرآن عبر مفاتيح الأعداد الصحيحة 32-bit Integer بالـ IslamicMPHF
+    if (this.data.quran && Array.isArray(this.data.quran.base)) {
       for (const v of this.data.quran.base) {
-        this.quranIndex.set(`${v.s}:${v.a}`, v.t);
+        const key = IslamicMPHF.packQuranKey(v.s, v.a, 0);
+        this.quranIndex.set(key, v.t);
+        this.normalizedQuranCache.push({ s: v.s, a: v.a, raw: v.t, norm: normalizeArabic(v.t) });
       }
-      if (this.data.quran.variants) {
+      if (Array.isArray(this.data.quran.variants)) {
         for (const v of this.data.quran.variants) {
-          this.quranVariants.set(`${v.s}:${v.a}:${v.r}`, v.t);
+          const key = IslamicMPHF.packQuranKey(v.s, v.a, v.r);
+          this.quranVariants.set(key, v.t);
         }
       }
     }
 
+    // 2. فهرسة الحديث الشريف بمفاتيح 32-bit Integer
     if (this.data.hadith) {
       for (const [bookId, list] of Object.entries(this.data.hadith)) {
-        for (const h of list) {
-          if (h.t && h.t.trim().length > 0) {
-            this.hadithIndex.set(`${bookId}:${h.n}`, h.t);
+        const bId = Number(bookId);
+        if (Array.isArray(list)) {
+          for (const h of list) {
+            if (h.t && typeof h.n === 'number') {
+              const key = IslamicMPHF.packHadithKey(bId, h.n);
+              this.hadithIndex.set(key, h.t);
+            }
           }
         }
       }
     }
 
+    // 3. فهرسة التفسير بمفاتيح 32-bit Integer
     if (this.data.tafsir) {
       for (const [bookId, list] of Object.entries(this.data.tafsir)) {
-        for (const t of list) {
-          if (t.t && t.t.trim().length > 0) {
-            this.tafsirIndex.set(`${bookId}:${t.s}:${t.a}`, t.t);
+        const bId = Number(bookId);
+        if (Array.isArray(list)) {
+          for (const t of list) {
+            if (t.t) {
+              const key = IslamicMPHF.packTafsirKey(bId, t.s, t.a);
+              this.tafsirIndex.set(key, t.t);
+            }
           }
         }
       }
@@ -221,27 +236,45 @@ export class IslamEngine {
   get quran() {
     return {
       getAyah: (surah, ayah, riwayah = "hafs") => {
-        const rId = typeof riwayah === 'number' ? riwayah : RIWAYAT.indexOf(riwayah.toLowerCase());
+        if (typeof surah !== 'number' || surah < 1 || surah > 114) {
+          throw new TypeError(`رقم السورة غير صحيح: يجب أن يكون بين 1 و 114.`);
+        }
+        const meta = SURAHS_META[surah - 1];
+        if (typeof ayah !== 'number' || ayah < 1 || ayah > meta.ayahs) {
+          throw new RangeError(`رقم الآية (${ayah}) خارج نطاق سورة ${meta.name} (1 - ${meta.ayahs}).`);
+        }
+
+        const rId = typeof riwayah === 'number' ? riwayah : RIWAYAT.indexOf(String(riwayah).toLowerCase());
+        if (rId < 0 || rId > 4) {
+          throw new TypeError(`الرواية غير معروفة: المتاح هو: ${RIWAYAT.join(', ')}.`);
+        }
+
         if (rId > 0) {
-          const variant = this.quranVariants.get(`${surah}:${ayah}:${rId}`);
+          const varKey = IslamicMPHF.packQuranKey(surah, ayah, rId);
+          const variant = this.quranVariants.get(varKey);
           if (variant) return variant;
         }
-        return this.quranIndex.get(`${surah}:${ayah}`) || null;
-      },
-      getSurahInfo: (surahId) => {
-        return SURAHS_META.find(s => s.id === surahId) || null;
-      },
-      getAllSurahs: () => SURAHS_META,
-      search: (query, limit = 50) => {
-        const results = [];
-        const cleanQuery = normalizeArabic(query);
-        if (!cleanQuery) return results;
 
-        for (const [key, text] of this.quranIndex.entries()) {
-          const cleanText = normalizeArabic(text);
-          if (cleanText.includes(cleanQuery)) {
-            const [s, a] = key.split(':').map(Number);
-            results.push({ surah: s, ayah: a, text });
+        const baseKey = IslamicMPHF.packQuranKey(surah, ayah, 0);
+        return this.quranIndex.get(baseKey) || null;
+      },
+
+      getSurahInfo: (surahId) => {
+        if (typeof surahId !== 'number' || surahId < 1 || surahId > 114) return null;
+        return SURAHS_META[surahId - 1];
+      },
+
+      getAllSurahs: () => SURAHS_META,
+
+      search: (query, limit = 50) => {
+        const cleanQuery = normalizeArabic(query);
+        if (!cleanQuery) return [];
+        const results = [];
+
+        for (let i = 0; i < this.normalizedQuranCache.length; i++) {
+          const item = this.normalizedQuranCache[i];
+          if (item.norm.includes(cleanQuery)) {
+            results.push({ surah: item.s, ayah: item.a, text: item.raw });
             if (results.length >= limit) break;
           }
         }
@@ -253,34 +286,18 @@ export class IslamEngine {
   get hadith() {
     return {
       get: (book, number) => {
-        const bId = typeof book === 'number' ? book : HADITH_BOOKS.indexOf(book.toLowerCase());
-        if (bId === -1 || !this.data.hadith?.[bId]) return null;
+        const bId = typeof book === 'number' ? book : HADITH_BOOKS.indexOf(String(book).toLowerCase());
+        if (bId === -1) throw new TypeError(`كتاب الحديث غير معروف: المتاح هو ${HADITH_BOOKS.join(', ')}.`);
+        if (typeof number !== 'number' || number < 1) throw new TypeError("رقم الحديث يجب أن يكون رقماً موجباً.");
 
-        const text = this.hadithIndex.get(`${bId}:${number}`);
-        if (text) return text;
-
-        const list = this.data.hadith[bId];
-        const match = list.find(h => h.n == number);
-        return match ? match.t : null;
+        const key = IslamicMPHF.packHadithKey(bId, number);
+        return this.hadithIndex.get(key) || null;
       },
-      search: (query, book = null, limit = 20) => {
-        const results = [];
-        const cleanQuery = normalizeArabic(query);
-        if (!cleanQuery) return results;
 
-        const bIdTarget = book !== null ? (typeof book === 'number' ? book : HADITH_BOOKS.indexOf(book.toLowerCase())) : null;
-
-        for (const [key, text] of this.hadithIndex.entries()) {
-          const [bId, n] = key.split(':');
-          if (bIdTarget !== null && Number(bId) !== bIdTarget) continue;
-
-          const cleanText = normalizeArabic(text);
-          if (cleanText.includes(cleanQuery)) {
-            results.push({ book: HADITH_BOOKS[Number(bId)], number: Number(n), text });
-            if (results.length >= limit) break;
-          }
-        }
-        return results;
+      count: (book) => {
+        const bId = typeof book === 'number' ? book : HADITH_BOOKS.indexOf(String(book).toLowerCase());
+        if (bId === -1 || !this.data.hadith?.[bId]) return 0;
+        return this.data.hadith[bId].length;
       }
     };
   }
@@ -288,10 +305,11 @@ export class IslamEngine {
   get tafsir() {
     return {
       get: (book, surah, ayah) => {
-        const bId = typeof book === 'number' ? book : TAFSIR_BOOKS.indexOf(book.toLowerCase());
-        if (bId === -1 || !this.data.tafsir?.[bId]) return null;
+        const bId = typeof book === 'number' ? book : TAFSIR_BOOKS.indexOf(String(book).toLowerCase());
+        if (bId === -1) throw new TypeError(`كتاب التفسير غير معروف: المتاح هو ${TAFSIR_BOOKS.join(', ')}.`);
 
-        return this.tafsirIndex.get(`${bId}:${surah}:${ayah}`) || null;
+        const key = IslamicMPHF.packTafsirKey(bId, surah, ayah);
+        return this.tafsirIndex.get(key) || null;
       }
     };
   }

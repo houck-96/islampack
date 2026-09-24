@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node serve.js",
-    "test": "node test/verify.js",
+    "test": "node test/verify.js && node test/api.test.js",
     "benchmark": "node benchmark.js",
     "build": "node src/compiler.js",
     "demo": "node demo.js"
