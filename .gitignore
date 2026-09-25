@@ -1,0 +1,15 @@
+# Dependencies (project is zero-dependency; ignore strays)
+node_modules/
+npm-debug.log*
+
+# Local pack duplicates (canonical packs live in dist/ and are tracked)
+*.pack
+!dist/*.pack
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+.vscode/
+.idea/

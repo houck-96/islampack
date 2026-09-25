@@ -1,0 +1,56 @@
+{
+  "name": "islampack",
+  "version": "1.0.0",
+  "description": "High-Performance, Zero-Dependency Islamic Canonical Engine. Quran (5 Qira'at), 5 Hadith Books (30k+ Hadiths), 5 Tafsirs (31k+ Entries).",
+  "main": "index.js",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./engine": "./src/engine.js",
+    "./engine-v2": "./src/engine_v2.js",
+    "./mphf": "./src/mphf.js",
+    "./normalize": "./src/normalize.js",
+    "./qiraat": "./src/qiraat.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "index.js",
+    "src/",
+    "app.html",
+    "serve.js",
+    "demo.js",
+    "benchmark.js",
+    "SOURCES.md"
+  ],
+  "scripts": {
+    "start": "node serve.js",
+    "test": "node test/verify.js && node test/api.test.js && node test/v2.test.js",
+    "verify": "node test/verify.js",
+    "test:api": "node test/api.test.js",
+    "test:v2": "node test/v2.test.js",
+    "benchmark": "node benchmark.js",
+    "build": "node src/compiler.js",
+    "build:v2": "node src/packv2.js",
+    "build:v2-tiny": "node src/packv2.js --tiny",
+    "build:qh": "node src/compiler.js --only-qh",
+    "build:qt": "node src/compiler.js --only-qt",
+    "build:full": "node src/compiler.js --only-full",
+    "build:master": "node compile_master.js",
+    "demo": "node demo.js",
+    "fetch": "node pipeline/fetch_all.js"
+  },
+  "keywords": [
+    "quran",
+    "qiraat",
+    "hadith",
+    "tafsir",
+    "islamic-data",
+    "compression",
+    "brotli",
+    "zero-dependencies"
+  ],
+  "author": "IslamPack Contributors",
+  "license": "CC-BY-NC-4.0"
+}

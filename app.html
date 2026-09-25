@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IslamPack — المستكشف المحلي</title>
+<style>
+  body { font-family: system-ui, Tahoma, sans-serif; margin: 0; background: #f7f5ef; color: #1f1f1f; }
+  header { background: #0d3b2e; color: #fff; padding: 16px 20px; }
+  main { max-width: 860px; margin: 0 auto; padding: 20px; }
+  .card { background: #fff; border-radius: 12px; padding: 16px; margin: 12px 0; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  input, select, button { font-size: 16px; padding: 8px 10px; margin: 4px; }
+  button { background: #0d3b2e; color: #fff; border: 0; border-radius: 8px; cursor: pointer; }
+  pre { white-space: pre-wrap; word-break: break-word; background: #fafafa; padding: 12px; border-radius: 8px; }
+  .ayah { font-size: 22px; line-height: 2.1; }
+</style>
+</head>
+<body>
+<header><h1>IslamPack — المستكشف المحلي</h1><div id="health">يفحص الاتصال بالخادم…</div></header>
+<main>
+  <div class="card">
+    <h2>آية</h2>
+    <input id="surah" type="number" min="1" max="114" value="1" placeholder="سورة">
+    <input id="ayah" type="number" min="1" max="286" value="1" placeholder="آية">
+    <select id="riwayah"><option>hafs</option><option>warsh</option><option>qalun</option><option>duri</option><option>shubah</option></select>
+    <button onclick="getAyah()">عرض</button>
+    <pre id="ayahOut" class="ayah"></pre>
+  </div>
+  <div class="card">
+    <h2>بحث قرآني</h2>
+    <input id="q" value="الكوثر" placeholder="كلمة البحث">
+    <button onclick="search()">بحث</button>
+    <pre id="searchOut"></pre>
+  </div>
+  <div class="card">
+    <h2>حديث / تفسير</h2>
+    <input id="hbook" value="bukhari" placeholder="الكتاب">
+    <input id="hnum" type="number" value="1" placeholder="رقم الحديث">
+    <button onclick="getHadith()">حديث</button>
+    <input id="tbook" value="saadi" placeholder="كتاب التفسير">
+    <input id="tsurah" type="number" value="1">
+    <input id="tayah" type="number" value="1">
+    <button onclick="getTafsir()">تفسير</button>
+    <pre id="htOut"></pre>
+  </div>
+</main>
+<script>
+async function j(u){ const r = await fetch(u); return r.json(); }
+async function health(){ try{ const h = await j('/api/health'); document.getElementById('health').textContent = h.loaded ? 'الحزمة محملة: ' + h.stats.quranVerses + ' آية، ' + h.stats.hadithTotal + ' حديث، ' + h.stats.tafsirTotal + ' تفسير' : 'لا توجد حزمة محملة'; }catch{ document.getElementById('health').textContent = 'تعذر الاتصال بالخادم'; } }
+async function getAyah(){ const s=surah.value,a=ayah.value,r=riwayah.value; ayahOut.textContent = JSON.stringify(await j(`/api/ayah?surah=${s}&ayah=${a}&riwayah=${r}`), null, 2); }
+async function search(){ searchOut.textContent = JSON.stringify(await j('/api/search?q='+encodeURIComponent(q.value)+'&limit=20'), null, 2); }
+async function getHadith(){ htOut.textContent = JSON.stringify(await j(`/api/hadith?book=${hbook.value}&number=${hnum.value}`), null, 2); }
+async function getTafsir(){ htOut.textContent = JSON.stringify(await j(`/api/tafsir?book=${tbook.value}&surah=${tsurah.value}&ayah=${tayah.value}`), null, 2); }
+health();
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+# Binary packs: no textual diff, no line-ending conversion
+*.pack binary
+dist/*.pack binary
+
+# Large data corpora: keep diffs out of day-to-day reviews
+data/**/*.json -diff

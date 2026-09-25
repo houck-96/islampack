@@ -1,0 +1,32 @@
+name: IslamPack Quality & Integrity CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: setup/node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Run Integrity & Cryptographic Check
+      run: node test/verify.js
+
+    - name: Run API Behavioral Tests
+      run: node test/api.test.js
+
+    - name: Run v2 Lazy-Engine Tests
+      run: node test/v2.test.js
